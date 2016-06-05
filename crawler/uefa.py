@@ -1,5 +1,5 @@
 from selenium import webdriver
-from crawler import MatchData, Goal
+from core.gameData import MatchData, Goal, NormalizedGameDataCollection
 import itertools as it
 
 import re
@@ -7,10 +7,11 @@ import re
 
 class UefaCrawler:
 
-    def __init__(self, year):
+    def __init__(self, year, normalisers):
         url = "http://www.uefa.com/uefaeuro/season={}/matches/all/index.html".format(year)
         self.driver = webdriver.Firefox()
         self.driver.get(url)
+        self.normalisers = normalisers
 
     def crawl(self):
         pass
@@ -109,4 +110,13 @@ class UefaCrawler:
             fouls_committed_team2=fouls_committed.team2,
             fouls_suffered_team1=fouls_suffered.team1,
             fouls_suffered_team2=fouls_suffered.team2
+        )
+
+    def get_normalized_game_data_collection(self):
+        return NormalizedGameDataCollection(
+            self.normalisers,
+            (
+                self.get_game_data(url)
+                for url in list(self.get_game_stats_link())[:3]
+            )
         )
