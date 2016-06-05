@@ -37,6 +37,16 @@ class NormalizedGameDataCollection(set):
             return NormalizedGameDataCollection.NormalizedMatchData(**normalised_values)
 
     def __init__(self, normalisers, data=None):
+        """
+        Collection based on set for normalised game data.
+
+        The fields of a ``NormalizedMatchData`` Element are exactly the
+        keys of the ``normalisers`` param, while their value is
+        ``normalisers[key](self, match_value)`` where ``match_value``
+        is the raw data field for key from associated MatchData object.
+        :param normalisers: dict of normalising functions
+        :param data: initial data
+        """
         super(NormalizedGameDataCollection, self).__init__(data)
         self.normalisers = normalisers
 
