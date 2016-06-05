@@ -34,7 +34,7 @@ class NormalizedGameDataCollection(set):
                 field = fn_or_dict.get('field')
                 fn = fn_or_dict.get('fn')
                 if fn and field:
-                    return lambda _src, _val: fn(_src, getattr(_val, field))
+                    return lambda _src, _val: fn(_src, getattr(_val, field), _val)
                 else:
                     raise ValueError()
 
