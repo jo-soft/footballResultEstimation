@@ -7,11 +7,11 @@ import re
 
 class UefaCrawler:
 
-    def __init__(self, year, normalisers):
+    def __init__(self, year, normalizers):
         url = "http://www.uefa.com/uefaeuro/season={}/matches/all/index.html".format(year)
         self.driver = webdriver.Firefox()
         self.driver.get(url)
-        self.normalisers = normalisers
+        self.normalizers = normalizers
 
     def crawl(self):
         pass
@@ -114,7 +114,7 @@ class UefaCrawler:
 
     def get_normalized_game_data_collection(self):
         return NormalizedGameDataCollection(
-            self.normalisers,
+            self.normalizers,
             (
                 self.get_game_data(url)
                 for url in list(self.get_game_stats_link())[:3]

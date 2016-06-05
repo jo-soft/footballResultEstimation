@@ -1,3 +1,4 @@
+from collections import Callable
 class Goal(object):
 
     def __init__(self, minute):
@@ -18,44 +19,55 @@ class NormalizedGameDataCollection(set):
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
-    class NormalisedIterator(object):
+    class NormalizedIterator(object):
 
-        def __init__(self, src, normalisers):
+        def __init__(self, src):
             self.src = src
-            self.normalisers = normalisers
+            self._iter = self.src.raw_data_iterator()
 
         def __next__(self):
-            val = self.src.__next__()
 
-            normalised_values = {
-                key: normalise_fn(
+            def get_normalize_fn(key, fn_or_dict):
+                if isinstance(fn_or_dict, Callable):
+                    return lambda _src, _val: fn_or_dict(_src, getattr(_val, key))
+
+                field = fn_or_dict.get('field')
+                fn = fn_or_dict.get('fn')
+                if fn and field:
+                    return lambda _src, _val: fn(_src, getattr(_val, field))
+                else:
+                    raise ValueError()
+
+            val = self._iter.__next__()
+
+            normalized_values = {
+                key: get_normalize_fn(key, normalize_fn_or_dict)(
                     self.src,
-                    getattr(val, key)
+                    val
                 )
-                for key, normalise_fn in self.normalisers.items()
+                for key, normalize_fn_or_dict in self.src.normalizers.items()
                 }
-            return NormalizedGameDataCollection.NormalizedMatchData(**normalised_values)
+            return NormalizedGameDataCollection.NormalizedMatchData(**normalized_values)
 
-    def __init__(self, normalisers, data=None):
+    def __init__(self, normalizers, data=None):
         """
-        Collection based on set for normalised game data.
+        Collection based on set for normalized game data.
 
         The fields of a ``NormalizedMatchData`` Element are exactly the
-        keys of the ``normalisers`` param, while their value is
-        ``normalisers[key](self, match_value)`` where ``match_value``
+        keys of the ``normalizers`` param, while their value is
+        ``normalizers[key](self, match_value)`` where ``match_value``
         is the raw data field for key from associated MatchData object.
-        :param normalisers: dict of normalising functions
+        :param normalizers: dict of normalising functions
         :param data: initial data
         """
         super(NormalizedGameDataCollection, self).__init__(data)
-        self.normalisers = normalisers
+        self.normalizers = normalizers
 
     def __iter__(self):
         """
-        :return: NormalisedIterator
+        :return: NormalizedIterator
         """
-        raw_data_iterator = self.raw_data_iterator()
-        return NormalizedGameDataCollection.NormalisedIterator(raw_data_iterator, self.normalisers)
+        return NormalizedGameDataCollection.NormalizedIterator(self)
 
     def raw_data_iterator(self):
         """
