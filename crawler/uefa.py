@@ -13,15 +13,12 @@ class UefaCrawler:
         self.driver.get(url)
         self.normalizers = normalizers
 
-    def crawl(self):
-        pass
-
-    def _get_game_links(self):
-        full_stat_links = self.driver.find_elements_by_css_selector(".session .status a.mr")
+    def _get_game_links(self, length):
+        full_stat_links = self.driver.find_elements_by_css_selector(".session .status a.mr")[:length]
         return [item.get_attribute('href') for item in full_stat_links]
 
-    def get_game_stats_link(self):
-        game_links = self._get_game_links()
+    def get_game_stats_link(self, length):
+        game_links = self._get_game_links(length)
 
         def make_game_stats_link(link):
             return link.replace(
@@ -112,11 +109,11 @@ class UefaCrawler:
             fouls_suffered_team2=fouls_suffered.team2
         )
 
-    def get_normalized_game_data_collection(self):
+    def get_normalized_game_data_collection(self, length=None):
         return NormalizedGameDataCollection(
             self.normalizers,
             (
                 self.get_game_data(url)
-                for url in list(self.get_game_stats_link())[:3]
+                for url in list(self.get_game_stats_link(length))
             )
         )
