@@ -11,7 +11,7 @@ class UefaCrawler:
         url = "http://www.uefa.com/uefaeuro/season={}/matches/all/index.html".format(year)
         self.driver = webdriver.Firefox()
         self.driver.get(url)
-        self.normalizers = normalizers
+        self.normalizer = normalizers
 
     def _get_game_links(self, length):
         full_stat_links = self.driver.find_elements_by_css_selector(".session .status a.mr")[:length]
@@ -111,7 +111,7 @@ class UefaCrawler:
 
     def get_normalized_game_data_collection(self, length=None):
         return NormalizedGameDataCollection(
-            self.normalizers,
+            self.normalizer,
             (
                 self.get_game_data(url)
                 for url in list(self.get_game_stats_link(length))

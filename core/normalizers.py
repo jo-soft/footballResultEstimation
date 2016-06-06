@@ -1,10 +1,14 @@
 class BasicNormalizer(object):
 
-    def __init__(self, num_game_parts=6):
+    def __init__(self, num_game_parts=8):
+        """
+        :param num_game_parts: default value of 8 leads to parts of 15 minutes incl. overtime
+        """
         self.num_game_parts = num_game_parts
+        self._gen_dict()
 
-    def items(self):
-        normalise_dict = {
+    def _gen_dict(self):
+        self.fields_dict = {
             'team1': {
                 'fn': self._team_name,
                 'field': 'team1'
@@ -151,7 +155,8 @@ class BasicNormalizer(object):
         for team in ('team1', 'team2'):
             for part in range(self.num_game_parts):
                 match_goals_per_part = "match_goals_per_part_{}_of_{}_{}".format(
-                    part, self.num_game_parts, team
+                    # add -1 in there because parts are numbered 0..num_game_parts - 1
+                    part, self.num_game_parts - 1, team
                 )
 
                 def create_match_goals_per_part_fn(_team, _part):
@@ -168,9 +173,10 @@ class BasicNormalizer(object):
                     # for compatibility reasons
                     'field': 'goals_{}'.format(team)
                 }
-                normalise_dict[match_goals_per_part] = match_goals_per_part_dict
+                self.fields_dict[match_goals_per_part] = match_goals_per_part_dict
 
-        return normalise_dict.items()
+    def items(self):
+        return self.fields_dict.items()
 
     def _max_data_fn(self, item, *args):
         return item/max(args)
@@ -310,7 +316,7 @@ class BasicNormalizer(object):
             getattr(obj, goals_field_name)
             )]
 
-        part_length = 90 / num_parts
+        part_length = 120 / num_parts
         part_start = part * part_length
         part_end = (part + 1) * part_length
 
