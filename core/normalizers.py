@@ -27,6 +27,18 @@ class BasicNormalizer(object):
                 'fn': self._match_goals_scored,
                 'field': 'goals_team2'
             },
+            'match_goals_per_attempt_team1': {
+                'fn': self._goals_per_attempt_team1,
+                # field needs to be present be present
+                # for compatibility reasons
+                'field': 'goals_team1'
+            },
+            'match_goals_per_attempt_team2': {
+                'fn': self._goals_per_attempt_team2,
+                # field needs to be present be present
+                # for compatibility reasons
+                'field': 'goals_team2'  #
+            },
 
             'max_attempts_team1': {
                 'fn': self._max_attempts,
@@ -242,3 +254,18 @@ class BasicNormalizer(object):
 
     def _team_name(self, src, val, obj=None):
         return val.lower()
+
+    def _goals_per_attempt(self, team, obj):
+        attempts_field_name = 'attempts_{}'.format(team)
+        goals_field_name = 'goals_{}'.format(team)
+
+        attempts = getattr(obj, attempts_field_name)
+        goals = getattr(obj, goals_field_name)
+
+        return len(goals) / attempts
+
+    def _goals_per_attempt_team1(self, src, val, obj=None):
+        return self._goals_per_attempt('team1', obj)
+
+    def _goals_per_attempt_team2(self, src, val, obj=None):
+        return self._goals_per_attempt('team2', obj)
