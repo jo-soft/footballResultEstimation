@@ -1,4 +1,6 @@
 from collections import Callable
+
+
 class Goal(object):
 
     def __init__(self, minute):
