@@ -1,3 +1,6 @@
+import jsonpickle
+import importlib
+
 from collections import Callable
 
 
@@ -15,6 +18,29 @@ class MatchData(object):
 
 
 class NormalizedGameDataCollection(set):
+    """
+    known bug:
+       normaliser constructor parameters get lost when using to_json/from_json.
+    """
+    @classmethod
+    def from_json(cls, file_path):
+        with open(file_path) as f:
+            json_str = f.read()
+        normalizer_class_module, normalizer_class_name, data = jsonpickle.decode(json_str)
+
+        mod = importlib.import_module(normalizer_class_module)
+        return cls(getattr(mod, normalizer_class_name)(), data)
+
+    def to_json(self, file_path):
+        with open(file_path, 'w') as f:
+            json_data = jsonpickle.encode(
+                (
+                    self.normalizer.__class__.__module__,
+                    self.normalizer.__class__.__name__,
+                    [item for item in self.raw_data_iterator()]
+                )
+            )
+            f.write(json_data)
 
     class NormalizedMatchData(MatchData):
         def __init__(self, **kwargs):
