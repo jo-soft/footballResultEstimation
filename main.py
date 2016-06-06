@@ -23,6 +23,13 @@ parser.add_argument('-c',
                     type=str,
                     default='crawler.uefa.UefaCrawler')
 
+parser.add_argument('-l',
+                    '--length',
+                    dest="match_count",
+                    help='data length',
+                    type=int,
+                    default=None)
+
 
 def main(year, normalizer_class, crawler_class):
     normalizer_instance = normalizer_class()
@@ -45,3 +52,6 @@ if __name__ == "__main__":
     crawler_class = get_normalizer_from_str(crawler_class_name)
 
     crawler = main(year, normalizer_class, crawler_class)
+    match_data_list = crawler.get_normalized_game_data_collection(
+        args.match_count
+        )

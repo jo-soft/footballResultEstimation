@@ -1,5 +1,8 @@
 class BasicNormalizer(object):
 
+    def __init__(self, num_game_parts=6):
+        self.num_game_parts = num_game_parts
+
     def items(self):
         normalise_dict = {
             'team1': {
@@ -144,6 +147,29 @@ class BasicNormalizer(object):
 
 
         }
+
+        for team in ('team1', 'team2'):
+            for part in range(self.num_game_parts):
+                match_goals_per_part = "match_goals_per_part_{}_of_{}_{}".format(
+                    part, self.num_game_parts, team
+                )
+
+                def create_match_goals_per_part_fn(_team, _part):
+                    return lambda src, val, obj, team=_team, part=_part, : self._goals_per_part(
+                        team,
+                        num_parts=self.num_game_parts,
+                        part=part,
+                        obj=obj
+                )
+
+                match_goals_per_part_dict = {
+                    'fn': create_match_goals_per_part_fn(team, part),
+                    # field needs to be present be present
+                    # for compatibility reasons
+                    'field': 'goals_{}'.format(team)
+                }
+                normalise_dict[match_goals_per_part] = match_goals_per_part_dict
+
         return normalise_dict.items()
 
     def _max_data_fn(self, item, *args):
@@ -269,3 +295,28 @@ class BasicNormalizer(object):
 
     def _goals_per_attempt_team2(self, src, val, obj=None):
         return self._goals_per_attempt('team2', obj)
+
+    def _goals_per_part(self, team, num_parts, part, obj):
+
+        def goal_to_minute(goal):
+            # handle overtime
+            minute_str = goal.minute.split('+')[0]
+
+            return int(minute_str)
+
+        goals_field_name = 'goals_{}'.format(team)
+        goals = [goal_minute for goal_minute in map(
+            goal_to_minute,
+            getattr(obj, goals_field_name)
+            )]
+
+        part_length = 90 / num_parts
+        part_start = part * part_length
+        part_end = (part + 1) * part_length
+
+        return len(
+            [
+                goal for goal in goals if
+                part_start < goal <= part_end
+            ]
+        )
