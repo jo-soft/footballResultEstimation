@@ -1,4 +1,4 @@
-class BasicNormalizers(object):
+class BasicNormalizer(object):
 
     def items(self):
         normalise_dict = {
