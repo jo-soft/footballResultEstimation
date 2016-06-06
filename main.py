@@ -31,9 +31,11 @@ parser.add_argument('-l',
                     default=None)
 
 
-def main(year, normalizer_class, crawler_class):
+def main(year, normalizer_class, crawler_class, length):
     normalizer_instance = normalizer_class()
-    return crawler_class(year, normalizer_instance)
+    crawler = crawler_class(year, normalizer_instance)
+    with crawler:
+        return crawler.get_normalized_game_data_collection(length)
 
 
 def get_normalizer_from_str(path_to_class):
@@ -51,7 +53,4 @@ if __name__ == "__main__":
     normalizer_class = get_normalizer_from_str(normalizer_class_name)
     crawler_class = get_normalizer_from_str(crawler_class_name)
 
-    crawler = main(year, normalizer_class, crawler_class)
-    match_data_list = crawler.get_normalized_game_data_collection(
-        args.match_count
-        )
+    match_data_list= main(year, normalizer_class, crawler_class, args.match_count)

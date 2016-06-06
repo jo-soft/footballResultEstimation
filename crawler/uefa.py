@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 from core.gameData import MatchData, Goal, NormalizedGameDataCollection
 import itertools as it
 
@@ -8,13 +9,40 @@ import re
 class UefaCrawler:
 
     def __init__(self, year, normalizers):
-        url = "http://www.uefa.com/uefaeuro/season={}/matches/all/index.html".format(year)
-        self.driver = webdriver.Firefox()
-        self.driver.get(url)
+        self.url = "http://www.uefa.com/uefaeuro/season={}/matches/all/index.html".format(year)
         self.normalizer = normalizers
 
+    def __enter__(self):
+        self.driver = webdriver.Firefox()
+        self.driver.get(self.url)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.driver:
+            self.driver.close()
+
     def _get_game_links(self, length):
-        full_stat_links = self.driver.find_elements_by_css_selector(".session .status a.mr")[:length]
+
+        selector = ".session .status a.mr"
+
+        class ElementCountUnchanged(object):
+
+            def __init__(self, selector):
+                super(ElementCountUnchanged, self).__init__()
+                self.old_selector_count = 0
+                self.selector = selector
+
+            def __call__(self, driver):
+                el = driver.find_elements_by_css_selector(selector)
+                count = len(el)
+                if 0 < count == self.old_selector_count:
+                    return True
+                self.old_selector_count = count
+                return False
+
+        WebDriverWait(self.driver, 60).until(
+            ElementCountUnchanged(selector)
+        )
+        full_stat_links = self.driver.find_elements_by_css_selector(selector)[:length]
         return [item.get_attribute('href') for item in full_stat_links]
 
     def get_game_stats_link(self, length):
