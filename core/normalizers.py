@@ -19,7 +19,7 @@ class BasicNormalizer(object):
             },
             'goals_team1': lambda src, val: len(val),
             'goals_team2': lambda src, val: len(val),
-
+            'date': lambda src, val: val,
             'max_goals_scored_team1': {
                 'fn': self._max_goals_scored,
                 'field': 'goals_team1'

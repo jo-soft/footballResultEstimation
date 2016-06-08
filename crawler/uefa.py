@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from core.gameData import MatchData, Goal, NormalizedGameDataCollection
@@ -64,11 +66,17 @@ class UefaCrawler:
             m2 = map(mk_goal, re.findall("\d+\+\d", goal_str))
             return list(goal for goal in it.chain(m1, m2))
 
+        def parse_date(match_data_str):
+            date_str = re.findall("\d+/\d+/\d+", match_data_str)[0]
+            return datetime.strptime(date_str, "%d/%m/%Y")
 
         self.driver.get(game_url)
 
         team1 = self.driver.find_element_by_css_selector("#teamHomeName a").text
         team2 = self.driver.find_element_by_css_selector("#teamAwayName a").text
+        game_date = parse_date(
+            self.driver.find_element_by_css_selector("#VenueDetails").text
+        )
 
         goals_team1 = list(it.chain(
             *(parse_goals(goalElement.text) for goalElement in self.driver.find_elements_by_css_selector("#resultHome li")
@@ -119,6 +127,7 @@ class UefaCrawler:
         return MatchData(
             team1=team1,
             team2=team2,
+            date=game_date,
             goals_team1=goals_team1,
             goals_team2=goals_team2,
             possession_team1=possession.team1,
