@@ -1,2 +1,5 @@
 jsonpickle (0.9.3)
+numpy (1.11.0)
+PyBrain (0.3.3)
+scipy (0.17.1)
 selenium (2.53.2)
