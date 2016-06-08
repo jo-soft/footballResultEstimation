@@ -1,3 +1,6 @@
+from core.gameData import NormalizedMatchData
+
+
 class AbstractAggregator(object):
 
     def __init__(self, data, value_fn,
@@ -22,12 +25,13 @@ class AbstractAggregator(object):
                 raise ValueError("incompatible fields")
             for key, value in item.items():
                 tmp_dict[key].append(value)
-        return {
+        data = {
             key: self.value_fn(
                 self.filter(value)
             ) for key, value in tmp_dict.items()
             if key not in self.exclude_fields
         }
+        return NormalizedMatchData(**data)
 
 
 class ExcludeUpperValPercentageFilterMixin:
@@ -54,7 +58,7 @@ class ExcludeUpperCountPercentageFilterMixin:
 
 class AvgAggregator(AbstractAggregator):
 
-    def __init__(self, data,*args, **kwargs):
+    def __init__(self, data, *args, **kwargs):
         from statistics import mean
         super(AvgAggregator, self).__init__(data, mean, *args, **kwargs)
 

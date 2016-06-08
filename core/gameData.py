@@ -2,6 +2,7 @@ import jsonpickle
 import importlib
 
 from collections import Callable
+from core.mixins import ToVectorMixin
 
 
 class Goal(object):
@@ -15,6 +16,15 @@ class MatchData(object):
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+
+
+class NormalizedMatchData(MatchData, ToVectorMixin):
+
+    def __init__(self, **kwargs):
+        super(NormalizedMatchData, self).__init__(**kwargs)
+        self.keys = list(kwargs.keys())
+        # ensure keys always have the same order
+        self.keys.sort()
 
 
 class NormalizedGameDataCollection(set):
@@ -42,10 +52,12 @@ class NormalizedGameDataCollection(set):
             )
             f.write(json_data)
 
-    class NormalizedMatchData(MatchData):
-        def __init__(self, **kwargs):
-            for key, value in kwargs.items():
-                setattr(self, key, value)
+    def teams(self):
+        # it's enough to consider team1 here because every team is at
+        # least once team1 (during the qualification phase)
+        return set(
+            item.team1 for item in self
+        )
 
     class NormalizedIterator(object):
 
@@ -75,7 +87,7 @@ class NormalizedGameDataCollection(set):
                 )
                 for key, normalize_fn_or_dict in self.src.normalizer.items()
                 }
-            return NormalizedGameDataCollection.NormalizedMatchData(**normalized_values)
+            return NormalizedMatchData(**normalized_values)
 
     def __init__(self, normalizer, data=None):
         """
