@@ -1,11 +1,13 @@
 class TeamSelector(object):
 
-    def __init__(self, data, team):
+    def __init__(self, data, team, normalizer=None, exclude_fields=['date']):
         self.data = data
         self.team = team
+        self.normalizer = getattr(data, 'normalizer', normalizer)
+        self.exclude_fields = exclude_fields
 
     def items(self, team_only=False):
-        normalizer = self.data.normalizer
+        normalizer = self.normalizer
         result = []
         for item in self.data:
             if item.team1 == self.team:
@@ -20,7 +22,7 @@ class TeamSelector(object):
             def new_key_fn(key):
                 if key.endswith(team_str):
                     result = "team_{}".format(key)
-                elif team_only:
+                elif team_only or key in self.exclude_fields:
                     return None
                 else:
                     result = "opponent_{}".format(key)

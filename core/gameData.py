@@ -61,12 +61,17 @@ class NormalizedGameDataCollection(set):
 
     class NormalizedIterator(object):
 
-        def __init__(self, src):
+        def __init__(self, src, start=None, end=None):
             self.src = src
             self._iter = self.src.raw_data_iterator()
+            self.start = start
+            self.end = end
+            self.idx = 0
+
+        def __iter__(self):
+            return self
 
         def __next__(self):
-
             def get_normalize_fn(key, fn_or_dict):
                 if isinstance(fn_or_dict, Callable):
                     return lambda _src, _val: fn_or_dict(_src, getattr(_val, key))
@@ -78,7 +83,16 @@ class NormalizedGameDataCollection(set):
                 else:
                     raise ValueError()
 
-            val = self._iter.__next__()
+            if self.end and self.idx >= self.end:
+                raise StopIteration()
+            elif self.start is not None and (self.idx <= self.start):
+                while self.idx <= self.start:
+                    val = self._iter.__next__()
+                    self.idx += 1
+
+            else:
+                val = self._iter.__next__()
+                self.idx += 1
 
             normalized_values = {
                 key: get_normalize_fn(key, normalize_fn_or_dict)(
@@ -108,6 +122,9 @@ class NormalizedGameDataCollection(set):
         :return: NormalizedIterator
         """
         return NormalizedGameDataCollection.NormalizedIterator(self)
+
+    def subset(self, start, end):
+        return NormalizedGameDataCollection.NormalizedIterator(self,start, end)
 
     def raw_data_iterator(self):
         """

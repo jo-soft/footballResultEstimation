@@ -7,7 +7,7 @@ class AbstractAggregator(object):
                  team_field_name="team", opponent_field_name="opponent", exclude_fields=[]):
         self.value_fn = value_fn
         self.data = data
-        self.exclude_fields = [team_field_name, opponent_field_name]
+        self.exclude_fields = [team_field_name, opponent_field_name, 'date']
         self.exclude_fields.extend(exclude_fields)
 
     def filter(self, items):
